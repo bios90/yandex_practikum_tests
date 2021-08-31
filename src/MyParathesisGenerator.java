@@ -4,16 +4,18 @@ import java.io.InputStreamReader;
 
 public class MyParathesisGenerator
 {
+    private static int countValid = 0;
     public static void main(String[] args) throws IOException
     {
         int count = getCount();
         String result = "";
         generate(result, 0, count);
+        System.out.println(countValid);
     }
 
     private static int getCount() throws IOException
     {
-        return 8;
+        return 10;
 //        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 //        int count = Integer.parseInt(reader.readLine());
 //        return count;
@@ -25,6 +27,7 @@ public class MyParathesisGenerator
         {
             if (isValidBraces(result))
             {
+                countValid++;
                 System.out.println(result);
             }
         } else

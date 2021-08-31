@@ -13,8 +13,8 @@ public class ClosestStop2 {
     public static void main(String[] args) throws IOException {
         ModelPoint point1 = new ModelPoint(1000, 1000, 1);
         ModelPoint point2 = new ModelPoint(1001, 1001, 2);
-        System.out.println("Point1 " + point1.getAsString());
-        System.out.println("Point2 " + point2.getAsString());
+//        System.out.println("Point1 " + point1.getAsString());
+//        System.out.println("Point2 " + point2.getAsString());
         //                System.out.println("Real diff is " + getDistance(point1, point2));
         //                System.out.println("Hash diffes " + (point1.hash - point2.hash));
 
@@ -118,7 +118,6 @@ public class ClosestStop2 {
             int y = Integer.parseInt(numsStr[1]);
             ModelPoint point = new ModelPoint(x, y, i);
             exitPoints.add(point);
-            out.append(point.getAsString()).append("\n");
 
             if (x < minX) {
                 minX = x;
@@ -148,7 +147,6 @@ public class ClosestStop2 {
 //                currentPoints.add(point);
 ////                stopPoints.put(point.hash, currentPoints);
 //            }
-            out.append(point.getAsString()).append("\n");
 
             if (x < minX) {
                 minX = x;
@@ -176,10 +174,10 @@ public class ClosestStop2 {
 
             ArrayList<ModelPoint> pointsToCheck = entry.getValue();
             for (ModelPoint pointStop : pointsToCheck) {
-                double distance = ClosestStop3.getDistance(pointStop, pointExit);
-                if (distance <= 20) {
-                    points.add(pointStop);
-                }
+//                double distance = ClosestStop3.getDistance(pointStop, pointExit);
+//                if (distance <= 20) {
+//                    points.add(pointStop);
+//                }
             }
         }
         return points;

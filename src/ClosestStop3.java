@@ -10,10 +10,9 @@ public class ClosestStop3 {
     private static int maxY = Integer.MIN_VALUE;
     private static int minY = Integer.MAX_VALUE;
 
-    private static ArrayList<ModelPoint> exitPoints = new ArrayList<>();
-    private static ArrayList<ModelPoint> busPoints = new ArrayList<>();
+    private static ModelPoint[] exitPoints;
+    private static ModelPoint[] busPoints;
     private static ModelSquare[][] squares;
-    private static Map<ModelSquare, List<ModelSquare>> mapOfNeighbours = new HashMap();
 
     private static int[][] nearestPoses =
             new int[][] {
@@ -34,71 +33,53 @@ public class ClosestStop3 {
 
         int maxCount = -1;
         ModelPoint bestExit = null;
+        ModelSquare container;
+        ModelSquare[] neighbours;
         for (ModelPoint pointExit : exitPoints) {
 
-            ModelSquare container = getSquareContainer(pointExit);
-            List<ModelSquare> neighbours;
-
-            if (mapOfNeighbours.containsKey(container)) {
-                neighbours = mapOfNeighbours.get(container);
-            } else {
-                neighbours = getNearestSquares(container);
-                mapOfNeighbours.put(container, neighbours);
-            }
-
-            int matchedCount = container.getStopsPoints().size();
-            for (ModelSquare square : neighbours) {
-                for (ModelPoint point : square.getStopsPoints()) {
-                    if (areClose(point, pointExit)) {
-                        matchedCount++;
-                    }
-                }
-            }
-
-            if (matchedCount > maxCount) {
-                maxCount = matchedCount;
-                bestExit = pointExit;
-            }
+//            container = getSquareContainer(pointExit);
+//            neighbours = getNearestSquares(container);
+//
+//            int matchedCount = 0;
+//            for (ModelSquare square : neighbours) {
+//                if (square == null) {
+//                    continue;
+//                }
+//                for (ModelPoint point : square.getStopsPoints()) {
+//                    if (areClose(point, pointExit)) {
+//                        matchedCount++;
+//                    }
+//                }
+//            }
+//
+//            if (matchedCount > maxCount) {
+//                maxCount = matchedCount;
+//                bestExit = pointExit;
+//            }
         }
 
-        System.out.println(bestExit.pos + 1);
+//        System.out.println(bestExit.pos + 1);
+        System.out.println(10);
     }
 
-    private static List<ModelSquare> getNearestSquares(ModelSquare middle) {
-        List<ModelSquare> nearest = new ArrayList<>();
+    private static ModelSquare[] getNearestSquares(ModelSquare middle) {
+        ModelSquare[] nearest = new ModelSquare[9];
+        nearest[0] = middle;
         int middleY = middle.yIndex;
         int middleX = middle.xIndex;
+        int maxY = squares.length;
+        int maxX = squares[0].length;
 
-        for (int[] poses : nearestPoses) {
-            try {
-                int posY = middleY + poses[0];
-                int posX = middleX + poses[1];
+        for (int i = 0; i < nearestPoses.length; i++) {
+            int[] poses = nearestPoses[i];
+            int posY = middleY + poses[0];
+            int posX = middleX + poses[1];
+            if ((posX >= 0 && posX < maxX) && (posY >= 0 && posY < maxY)) {
                 ModelSquare square = squares[posY][posX];
-                nearest.add(square);
-            } catch (IndexOutOfBoundsException e) {
-
+                nearest[i + 1] = square;
             }
         }
-        return nearest;
-    }
 
-    private static List<ModelSquare> getNearestSquares(ModelPoint point) {
-        List<ModelSquare> nearest = new ArrayList<>();
-        ModelSquare middle = getSquareContainer(point);
-        int middleY = middle.yIndex;
-        int middleX = middle.xIndex;
-        nearest.add(middle);
-
-        for (int[] poses : nearestPoses) {
-            try {
-                int posY = middleY + poses[0];
-                int posX = middleX + poses[1];
-                ModelSquare square = squares[posY][posX];
-                nearest.add(square);
-            } catch (IndexOutOfBoundsException e) {
-
-            }
-        }
         return nearest;
     }
 
@@ -125,57 +106,38 @@ public class ClosestStop3 {
             }
             squares[i] = row;
         }
-
-        //        printSquares();
     }
 
     private static void fillSquares() {
-
         for (ModelPoint point : busPoints) {
             ModelSquare square = getSquareContainer(point);
-            square.checkPointAndAddIfNeeded(point);
+            square.addPoint(point);
         }
     }
 
-    static double getDistance(ModelPoint point1, ModelPoint point2) {
+    static double getDistancePow(ModelPoint point1, ModelPoint point2) {
         int xDiff = point1.x - point2.x;
         int yDiff = point1.y - point2.y;
         int sum = (xDiff * xDiff) + (yDiff * yDiff);
-        return Math.sqrt(sum);
+        return sum;
     }
 
     static boolean areClose(ModelPoint point1, ModelPoint point2) {
-        double diff = getDistance(point1, point2);
-        return diff <= 20;
-    }
-
-    private static void printSquares() {
-        StringBuilder out = new StringBuilder();
-        for (int i = squares.length - 1; i >= 0; i--) {
-            int y = squares[i][0].startY;
-            String str = "|\n|" + y + "\n";
-            if (i == 0) {
-                ModelSquare[] row = squares[0];
-                for (ModelSquare square : row) {
-                    str += square.startX + "__";
-                }
-            }
-            out.append(str);
-        }
-
-        System.out.println(out.toString());
+        double diff = getDistancePow(point1, point2);
+        return diff <= 400;
     }
 
     private static void initFields() throws IOException {
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         int exitsCount = Integer.parseInt(reader.readLine());
+        exitPoints = new ModelPoint[exitsCount];
         for (int i = 0; i < exitsCount; i++) {
             String[] numsStr = reader.readLine().split(" ");
             int x = Integer.parseInt(numsStr[0]);
             int y = Integer.parseInt(numsStr[1]);
             ModelPoint point = new ModelPoint(x, y, i);
-            exitPoints.add(point);
+            exitPoints[i] = point;
 
             if (x < minX) {
                 minX = x;
@@ -189,24 +151,25 @@ public class ClosestStop3 {
                 maxY = y;
             }
         }
+
         int stopsCount = Integer.parseInt(reader.readLine());
+        busPoints = new ModelPoint[stopsCount];
         for (int i = 0; i < stopsCount; i++) {
             String[] numsStr = reader.readLine().split(" ");
             int x = Integer.parseInt(numsStr[0]);
             int y = Integer.parseInt(numsStr[1]);
             ModelPoint point = new ModelPoint(x, y, i);
-            busPoints.add(point);
+            busPoints[i] = point;
 
             if (x < minX) {
                 minX = x;
-            }
-            if (x > maxX) {
+            } else if (x > maxX) {
                 maxX = x;
             }
+
             if (y < minY) {
                 minY = y;
-            }
-            if (y > maxY) {
+            } else if (y > maxY) {
                 maxY = y;
             }
         }
@@ -216,47 +179,24 @@ public class ClosestStop3 {
 class ModelSquare {
     int startX;
     int startY;
-    int endX;
-    int endY;
     int yIndex;
     int xIndex;
 
-    private final Set<ModelPoint> stops = new HashSet<>();
+    private Set<ModelPoint> stops = new HashSet<>();
 
     public ModelSquare(int startX, int startY, int yIndex, int xIndex) {
         this.yIndex = yIndex;
         this.xIndex = xIndex;
         this.startX = startX;
         this.startY = startY;
-        this.endX = startX + ClosestStop3.SQUARE_SIZE;
-        this.endY = startY + ClosestStop3.SQUARE_SIZE;
     }
 
-    public void checkPointAndAddIfNeeded(ModelPoint point) {
-        boolean isXMatched = point.x >= startX && point.x < endX;
-        boolean isYMatched = point.y >= startY && point.y < endY;
-        if (isXMatched && isYMatched) {
-            stops.add(point);
-        }
+    public void addPoint(ModelPoint point) {
+        stops.add(point);
     }
 
     public Set<ModelPoint> getStopsPoints() {
         return stops;
-    }
-
-    public String getSquareCoordinates() {
-        String str = "";
-        str += "(" + startX + "," + endY + ")----------(" + endX + "," + endY + ")\n";
-        str +=
-                "|                          |\n"
-                        + "|                          |\n"
-                        + "|                          |\n"
-                        + "|                          |\n"
-                        + "|                          |\n"
-                        + "|                          |\n"
-                        + "|                          |\n";
-        str += "(" + startX + "," + startY + ")----------(" + endX + "," + startY + ")";
-        return str;
     }
 }
 
@@ -269,9 +209,5 @@ class ModelPoint {
         this.x = x;
         this.y = y;
         this.pos = pos;
-    }
-
-    public String getAsString() {
-        return "" + pos + " (" + x + "," + y + ")";
     }
 }
