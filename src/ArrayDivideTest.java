@@ -9,8 +9,6 @@ public class ArrayDivideTest
     {
         int[] nums = getNums();
         divide(nums);
-        System.out.println("Counter is " + counter);
-        System.out.println("Sort fun called  " + sort_fun_called);
     }
 
     private static void divide(int[] nums)
